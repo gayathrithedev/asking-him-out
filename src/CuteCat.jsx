@@ -148,11 +148,11 @@ export default function CuteCat({ mood = 'happy' }) {
 
           {/* Eyes */}
           <g>
+            {/* Left eye */}
             <ellipse cx="148" cy="190" rx="18" ry="20" fill="white" />
-            <motion.ellipse
+            <ellipse
               cx="150" cy="192" rx="10"
-              animate={{ ry: eyeHeight }}
-              transition={{ duration: 0.1 }}
+              ry={eyeHeight}
               fill="#2c2c2c"
             />
             {pupilVisible && (
@@ -162,11 +162,11 @@ export default function CuteCat({ mood = 'happy' }) {
               </>
             )}
 
+            {/* Right eye */}
             <ellipse cx="202" cy="190" rx="18" ry="20" fill="white" />
-            <motion.ellipse
+            <ellipse
               cx="200" cy="192" rx="10"
-              animate={{ ry: eyeHeight }}
-              transition={{ duration: 0.1, delay: 0.05 }}
+              ry={eyeHeight}
               fill="#2c2c2c"
             />
             {pupilVisible && (
