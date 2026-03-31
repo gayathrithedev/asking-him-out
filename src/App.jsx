@@ -15,6 +15,10 @@ const sadMessages = [
 
 const TRAILER_URL = "https://youtu.be/m08TxIsFTRI"
 
+// ─── Web3Forms access key ────────────────────────────────────────────────────
+// Get your free key at https://web3forms.com (enter your email → copy the key)
+const WEB3FORMS_KEY = import.meta.env.VITE_API_KEY
+
 // ─── Paw prints on click ──────────────────────────────────────────────────────
 function PawPrints() {
   const [paws, setPaws] = useState([])
@@ -122,6 +126,20 @@ export default function App() {
     setTimeout(fireConfetti, 4000)
 
     setTimeout(() => setShowQuestion(false), 2800)
+
+    // 🔔 Send email notification to Kitty
+    if (WEB3FORMS_KEY !== "YOUR_ACCESS_KEY_HERE") {
+      fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_KEY,
+          subject: "🎉 Daddy said YES to Project Hail Mary!",
+          from_name: "Movie Date Alert 🐱",
+          message: "OMG! Vijay just pressed YES! He wants to watch Project Hail Mary with you! 🎬💕🐱",
+        }),
+      }).catch(() => {}) // silent fail — don't ruin the moment
+    }
   }
 
   const handleNo = () => {
