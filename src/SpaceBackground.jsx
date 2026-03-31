@@ -1,0 +1,372 @@
+import { useEffect, useRef } from 'react'
+import { motion } from 'framer-motion'
+
+/*
+  Dense spiral galaxy — matching the reference image:
+  - Many tightly wound spiral arms (not just 3)
+  - Stars densely packed along arms forming visible ring-like curves
+  - Color: bright white/yellow core → purple/violet middle → blue/cyan outer arms
+  - Bright cyan highlight particles scattered on outer arms
+  - Brilliant core with lens flare cross
+  - Tilted elliptical perspective (viewed at ~30° angle)
+*/
+
+function GalaxyCanvas() {
+  const canvasRef = useRef(null)
+  const frameRef = useRef(0)
+  const particlesRef = useRef([])
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+
+    const resize = () => {
+      canvas.width = window.innerWidth * dpr
+      canvas.height = window.innerHeight * dpr
+      ctx.scale(dpr, dpr)
+      canvas.style.width = window.innerWidth + 'px'
+      canvas.style.height = window.innerHeight + 'px'
+    }
+    resize()
+    window.addEventListener('resize', resize)
+
+    if (particlesRef.current.length === 0) {
+      const particles = []
+      const w = window.innerWidth
+      const h = window.innerHeight
+      const cx = w * 0.5
+      const cy = h * 0.72
+      const maxRadius = Math.min(w, h) * 0.38
+
+      // ── Diffuse star cloud (no spiral arms) ──
+      const totalParticles = 5000
+
+      for (let i = 0; i < totalParticles; i++) {
+        // Distance from center — gaussian-ish distribution, denser toward center
+        const rawDist = Math.pow(Math.random(), 0.6)
+        const dist = rawDist * maxRadius
+
+        // Fully random angle — no spiral structure
+        const angle = Math.random() * Math.PI * 2
+
+        // Normalize distance for color
+        const t = rawDist
+
+        // Color gradient: core warm white → middle violet/purple → outer blue/cyan
+        let r, g, b
+        if (t < 0.15) {
+          // Core: warm white/yellow
+          r = 240 + Math.random() * 15
+          g = 210 + Math.random() * 30
+          b = 180 + Math.random() * 40
+        } else if (t < 0.45) {
+          // Middle: violet / purple
+          const mt = (t - 0.15) / 0.3
+          r = Math.floor(220 - mt * 90)
+          g = Math.floor(180 - mt * 80)
+          b = Math.floor(220 + mt * 35)
+        } else {
+          // Outer: blue / indigo
+          const ot = (t - 0.45) / 0.55
+          r = Math.floor(130 - ot * 60)
+          g = Math.floor(100 - ot * 30 + ot * 40)
+          b = Math.floor(255 - ot * 20)
+        }
+
+        const size = (1 - t * 0.4) * (0.3 + Math.random() * 1.2)
+        const alpha = (1 - t * 0.3) * (0.25 + Math.random() * 0.55)
+
+        particles.push({
+          dist,
+          angle,
+          baseAngle: angle,
+          cx, cy,
+          size,
+          color: `rgb(${r},${g},${b})`,
+          alpha,
+          speed: (0.0001 + Math.random() * 0.00015) * (1 + (1 - t) * 0.5),
+          twinkleSpeed: 0.3 + Math.random() * 1.5,
+          twinkleOffset: Math.random() * Math.PI * 2,
+          tiltY: 0.4,  // elliptical tilt
+        })
+      }
+
+      // ── Bright cyan accent particles scattered in outer region ──
+      for (let i = 0; i < 200; i++) {
+        const rawDist = 0.35 + Math.random() * 0.65
+        const dist = rawDist * maxRadius
+        const angle = Math.random() * Math.PI * 2
+
+        particles.push({
+          dist,
+          angle,
+          baseAngle: angle,
+          cx, cy,
+          size: 0.5 + Math.random() * 1,
+          color: `rgb(${100 + Math.random() * 40},${180 + Math.random() * 55},${255})`,
+          alpha: 0.3 + Math.random() * 0.4,
+          speed: 0.0001 + Math.random() * 0.0001,
+          twinkleSpeed: 1 + Math.random() * 3,
+          twinkleOffset: Math.random() * Math.PI * 2,
+          tiltY: 0.4,
+          isCyan: true,
+        })
+      }
+
+      // ── Dense core cluster ──
+      for (let i = 0; i < 500; i++) {
+        const dist = Math.random() * maxRadius * 0.12
+        const angle = Math.random() * Math.PI * 2
+        const brightness = 200 + Math.random() * 55
+
+        particles.push({
+          dist,
+          angle,
+          baseAngle: angle,
+          cx, cy,
+          size: 0.4 + Math.random() * 1.8,
+          color: `rgb(${brightness},${brightness - 20},${brightness - 10 + Math.random() * 40})`,
+          alpha: 0.5 + Math.random() * 0.5,
+          speed: 0.0002 + Math.random() * 0.0003,
+          twinkleSpeed: 1 + Math.random() * 3,
+          twinkleOffset: Math.random() * Math.PI * 2,
+          tiltY: 0.4,
+        })
+      }
+
+      // ── Diffuse inter-arm dust (fills gaps, makes it look fuller) ──
+      for (let i = 0; i < 1500; i++) {
+        const dist = Math.random() * maxRadius
+        const angle = Math.random() * Math.PI * 2
+        const t = dist / maxRadius
+
+        let r = Math.floor(80 + t * 40)
+        let g = Math.floor(50 + t * 30)
+        let b = Math.floor(120 + t * 80)
+
+        particles.push({
+          dist,
+          angle,
+          baseAngle: angle,
+          cx, cy,
+          size: 0.2 + Math.random() * 0.8,
+          color: `rgb(${r},${g},${b})`,
+          alpha: 0.08 + Math.random() * 0.15,
+          speed: 0.00008 + Math.random() * 0.0001,
+          twinkleSpeed: 0.2 + Math.random() * 0.8,
+          twinkleOffset: Math.random() * Math.PI * 2,
+          tiltY: 0.4,
+        })
+      }
+
+      // ── Background field stars ──
+      for (let i = 0; i < 60; i++) {
+        particles.push({
+          dist: 9999,
+          angle: 0, baseAngle: 0,
+          cx: 0, cy: 0,
+          fieldX: Math.random() * w,
+          fieldY: Math.random() * h,
+          size: 0.4 + Math.random() * 1,
+          color: '#fff',
+          alpha: 0.04 + Math.random() * 0.15,
+          speed: 0,
+          twinkleSpeed: 0.3 + Math.random() * 1,
+          twinkleOffset: Math.random() * Math.PI * 2,
+          tiltY: 0.4,
+          isField: true,
+        })
+      }
+
+      particlesRef.current = particles
+    }
+
+    let time = 0
+    const animate = () => {
+      const w = window.innerWidth
+      const h = window.innerHeight
+      time += 0.016
+
+      ctx.clearRect(0, 0, w, h)
+
+      const cxDraw = w * 0.5
+      const cyDraw = h * 0.72
+
+      // ── Core glow layers ──
+      // Outer haze
+      const haze = ctx.createRadialGradient(cxDraw, cyDraw, 0, cxDraw, cyDraw, 200)
+      haze.addColorStop(0, 'rgba(160,130,220,0.06)')
+      haze.addColorStop(0.4, 'rgba(100,60,180,0.025)')
+      haze.addColorStop(1, 'transparent')
+      ctx.fillStyle = haze
+      ctx.fillRect(0, 0, w, h)
+
+      // Inner bright core
+      const core = ctx.createRadialGradient(cxDraw, cyDraw, 0, cxDraw, cyDraw, 50)
+      core.addColorStop(0, 'rgba(255,245,230,0.15)')
+      core.addColorStop(0.3, 'rgba(200,170,255,0.06)')
+      core.addColorStop(1, 'transparent')
+      ctx.fillStyle = core
+      ctx.fillRect(0, 0, w, h)
+
+      // ── Draw particles ──
+      for (const p of particlesRef.current) {
+        if (p.isField) {
+          const twinkle = 0.5 + 0.5 * Math.sin(time * p.twinkleSpeed + p.twinkleOffset)
+          ctx.globalAlpha = p.alpha * twinkle
+          ctx.fillStyle = p.color
+          ctx.beginPath()
+          ctx.arc(p.fieldX, p.fieldY, p.size, 0, Math.PI * 2)
+          ctx.fill()
+          continue
+        }
+
+        // Rotate
+        p.angle = p.baseAngle + time * p.speed * 60
+
+        const x = p.cx + Math.cos(p.angle) * p.dist
+        const y = p.cy + Math.sin(p.angle) * p.dist * p.tiltY
+
+        // Skip if off screen
+        if (x < -20 || x > w + 20 || y < -20 || y > h + 20) continue
+
+        const twinkle = 0.6 + 0.4 * Math.sin(time * p.twinkleSpeed + p.twinkleOffset)
+        ctx.globalAlpha = p.alpha * twinkle
+        ctx.fillStyle = p.color
+
+        ctx.beginPath()
+        ctx.arc(x, y, p.size, 0, Math.PI * 2)
+        ctx.fill()
+
+        // Subtle glow for brighter particles only
+        if (p.size > 1.5) {
+          ctx.globalAlpha = p.alpha * twinkle * 0.08
+          ctx.beginPath()
+          ctx.arc(x, y, p.size * 2.5, 0, Math.PI * 2)
+          ctx.fill()
+        }
+      }
+
+      // ── Lens flare cross on core ──
+      ctx.globalAlpha = 0.12 + 0.06 * Math.sin(time * 0.5)
+      ctx.strokeStyle = 'rgba(255,245,255,0.5)'
+      ctx.lineWidth = 1
+      // Vertical flare
+      ctx.beginPath()
+      ctx.moveTo(cxDraw, cyDraw - 60)
+      ctx.lineTo(cxDraw, cyDraw + 60)
+      ctx.stroke()
+      // Horizontal flare (wider, tilted with galaxy)
+      ctx.beginPath()
+      ctx.moveTo(cxDraw - 90, cyDraw)
+      ctx.lineTo(cxDraw + 90, cyDraw)
+      ctx.stroke()
+
+      // Core bright point
+      ctx.globalAlpha = 0.4 + 0.15 * Math.sin(time * 0.8)
+      ctx.fillStyle = '#fff'
+      ctx.beginPath()
+      ctx.arc(cxDraw, cyDraw, 2, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.globalAlpha = 0.15 + 0.05 * Math.sin(time * 0.8)
+      ctx.beginPath()
+      ctx.arc(cxDraw, cyDraw, 6, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.globalAlpha = 1
+      frameRef.current = requestAnimationFrame(animate)
+    }
+
+    frameRef.current = requestAnimationFrame(animate)
+
+    return () => {
+      cancelAnimationFrame(frameRef.current)
+      window.removeEventListener('resize', resize)
+    }
+  }, [])
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{ position: 'absolute', inset: 0, zIndex: 1 }}
+    />
+  )
+}
+
+// ─── Ambient Layers ───────────────────────────────────────────────────────────
+function AmbientLayers() {
+  return (
+    <>
+      {/* Vignette focused around galaxy */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 2,
+        background: 'radial-gradient(ellipse at 50% 72%, transparent 12%, rgba(0,0,0,0.45) 35%, rgba(0,0,0,0.92) 65%)',
+      }} />
+
+      {/* Top darkener for text readability */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 2,
+        background: 'linear-gradient(to bottom, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.55) 30%, transparent 55%)',
+      }} />
+
+      {/* Lens flare glow */}
+      <motion.div
+        style={{
+          position: 'absolute',
+          left: '50%', top: '72%',
+          width: 350, height: 1.5,
+          transform: 'translate(-50%, -50%)',
+          background: 'linear-gradient(90deg, transparent, rgba(150,120,255,0.06), rgba(255,255,255,0.1), rgba(150,120,255,0.06), transparent)',
+          zIndex: 3,
+        }}
+        animate={{ opacity: [0.3, 0.6, 0.3], scaleX: [0.8, 1.15, 0.8] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+      />
+    </>
+  )
+}
+
+// ─── Shooting Star ────────────────────────────────────────────────────────────
+function ShootingStar({ delay, startX, startY }) {
+  return (
+    <motion.div
+      style={{
+        position: 'absolute',
+        left: `${startX}%`, top: `${startY}%`,
+        width: 70, height: 1,
+        background: 'linear-gradient(90deg, rgba(255,255,255,0.7), rgba(150,130,255,0.2), transparent)',
+        borderRadius: 1,
+        transformOrigin: 'left center',
+        rotate: '28deg',
+        zIndex: 4,
+      }}
+      animate={{ x: [0, 380], y: [0, 170], opacity: [0, 0.7, 0] }}
+      transition={{
+        duration: 0.8,
+        repeat: Infinity,
+        delay,
+        repeatDelay: 14 + Math.random() * 10,
+        ease: 'easeIn',
+      }}
+    />
+  )
+}
+
+export default function SpaceBackground() {
+  return (
+    <div style={{
+      position: 'fixed', inset: 0,
+      background: '#000',
+      overflow: 'hidden',
+      zIndex: 0,
+    }}>
+      <GalaxyCanvas />
+      <AmbientLayers />
+      <ShootingStar delay={4} startX={8} startY={12} />
+      <ShootingStar delay={14} startX={55} startY={6} />
+      <ShootingStar delay={25} startX={20} startY={65} />
+    </div>
+  )
+}
