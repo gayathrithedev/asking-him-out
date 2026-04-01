@@ -354,6 +354,121 @@ function ShootingStar({ delay, startX, startY }) {
   )
 }
 
+// ─── Floating Spaceships & Rockets ───────────────────────────────────────────
+function SpaceVehicle({ type, delay, duration, startX, startY, endX, endY, scale = 1, rotate = 0 }) {
+  const rockets = {
+    // Sleek rocket with flame
+    rocket1: (
+      <svg width="40" height="80" viewBox="0 0 40 80" fill="none" style={{ transform: `scale(${scale})` }}>
+        {/* Flame */}
+        <motion.g
+          animate={{ opacity: [0.6, 1, 0.6], scaleY: [0.8, 1.2, 0.8] }}
+          transition={{ duration: 0.3, repeat: Infinity }}
+          style={{ transformOrigin: '20px 75px' }}
+        >
+          <ellipse cx="20" cy="75" rx="6" ry="10" fill="#f39c12" opacity="0.9" />
+          <ellipse cx="20" cy="73" rx="4" ry="7" fill="#f5b041" opacity="0.8" />
+          <ellipse cx="20" cy="71" rx="2" ry="4" fill="#fad7a0" />
+        </motion.g>
+        {/* Body */}
+        <path d="M 14 60 L 14 28 Q 14 8 20 4 Q 26 8 26 28 L 26 60 Z" fill="#d5d8dc" />
+        <path d="M 17 60 L 17 30 Q 17 12 20 8 Q 23 12 23 30 L 23 60 Z" fill="#eaecee" />
+        {/* Nose cone */}
+        <path d="M 14 28 Q 14 8 20 2 Q 26 8 26 28" fill="#e74c3c" />
+        {/* Window */}
+        <circle cx="20" cy="32" r="4" fill="#2c3e50" />
+        <circle cx="20" cy="32" r="3" fill="#5dade2" opacity="0.7" />
+        <circle cx="18.5" cy="30.5" r="1" fill="white" opacity="0.6" />
+        {/* Fins */}
+        <path d="M 14 52 L 6 65 L 14 60 Z" fill="#e74c3c" />
+        <path d="M 26 52 L 34 65 L 26 60 Z" fill="#e74c3c" />
+      </svg>
+    ),
+    // Spaceship / UFO style
+    ship1: (
+      <svg width="60" height="30" viewBox="0 0 60 30" fill="none" style={{ transform: `scale(${scale})` }}>
+        {/* Engine glow */}
+        <motion.ellipse
+          cx="30" cy="22" rx="12" ry="3"
+          fill="#5dade2" opacity="0.4"
+          animate={{ opacity: [0.2, 0.5, 0.2], ry: [2, 4, 2] }}
+          transition={{ duration: 0.8, repeat: Infinity }}
+        />
+        {/* Hull */}
+        <ellipse cx="30" cy="18" rx="25" ry="8" fill="#7f8c8d" />
+        <ellipse cx="30" cy="17" rx="22" ry="6" fill="#95a5a6" />
+        {/* Dome */}
+        <ellipse cx="30" cy="13" rx="12" ry="10" fill="#aab7b8" />
+        <ellipse cx="30" cy="11" rx="10" ry="8" fill="#bdc3c7" />
+        {/* Window */}
+        <ellipse cx="30" cy="10" rx="6" ry="5" fill="#2c3e50" />
+        <ellipse cx="30" cy="9" rx="5" ry="4" fill="#1a5276" />
+        <ellipse cx="28" cy="8" rx="2" ry="1.5" fill="white" opacity="0.3" />
+        {/* Lights */}
+        <motion.g animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.2, repeat: Infinity }}>
+          <circle cx="12" cy="18" r="1.5" fill="#f39c12" />
+          <circle cx="22" cy="20" r="1.5" fill="#e74c3c" />
+          <circle cx="38" cy="20" r="1.5" fill="#e74c3c" />
+          <circle cx="48" cy="18" r="1.5" fill="#f39c12" />
+        </motion.g>
+      </svg>
+    ),
+    // Small shuttle
+    shuttle: (
+      <svg width="35" height="60" viewBox="0 0 35 60" fill="none" style={{ transform: `scale(${scale})` }}>
+        {/* Flame trail */}
+        <motion.g
+          animate={{ opacity: [0.5, 0.9, 0.5], scaleY: [0.7, 1.3, 0.7] }}
+          transition={{ duration: 0.25, repeat: Infinity }}
+          style={{ transformOrigin: '17.5px 58px' }}
+        >
+          <ellipse cx="17.5" cy="58" rx="4" ry="6" fill="#e67e22" opacity="0.8" />
+          <ellipse cx="17.5" cy="56" rx="2.5" ry="4" fill="#fad7a0" />
+        </motion.g>
+        {/* Body */}
+        <path d="M 11 48 L 11 18 Q 11 4 17.5 2 Q 24 4 24 18 L 24 48 Z" fill="#bdc3c7" />
+        <path d="M 14 46 L 14 20 Q 14 8 17.5 5 Q 21 8 21 20 L 21 46 Z" fill="#d5d8dc" />
+        {/* Nose */}
+        <path d="M 11 18 Q 11 4 17.5 0 Q 24 4 24 18" fill="#2ecc71" />
+        {/* Wings */}
+        <path d="M 11 38 L 2 50 L 11 46 Z" fill="#2ecc71" />
+        <path d="M 24 38 L 33 50 L 24 46 Z" fill="#2ecc71" />
+        {/* Window */}
+        <circle cx="17.5" cy="22" r="3" fill="#2c3e50" />
+        <circle cx="17.5" cy="22" r="2" fill="#5dade2" opacity="0.6" />
+      </svg>
+    ),
+  }
+
+  return (
+    <motion.div
+      style={{
+        position: 'absolute',
+        left: `${startX}%`,
+        top: `${startY}%`,
+        zIndex: 3,
+        pointerEvents: 'none',
+        rotate: `${rotate}deg`,
+        opacity: 0.35,
+      }}
+      animate={{
+        x: [`0vw`, `${endX - startX}vw`],
+        y: [`0vh`, `${endY - startY}vh`],
+        opacity: [0, 0.35, 0.35, 0],
+      }}
+      transition={{
+        duration,
+        repeat: Infinity,
+        delay,
+        repeatDelay: 2,
+        ease: 'linear',
+      }}
+    >
+      {rockets[type]}
+    </motion.div>
+  )
+}
+
 export default function SpaceBackground() {
   return (
     <div style={{
@@ -367,6 +482,13 @@ export default function SpaceBackground() {
       <ShootingStar delay={4} startX={8} startY={12} />
       <ShootingStar delay={14} startX={55} startY={6} />
       <ShootingStar delay={25} startX={20} startY={65} />
+
+      {/* Floating space vehicles — all visible together, gentle drift */}
+      <SpaceVehicle type="rocket1" delay={0} duration={28} startX={5} startY={90} endX={25} endY={-15} scale={0.7} rotate={-15} />
+      <SpaceVehicle type="ship1" delay={1} duration={32} startX={-5} startY={35} endX={110} endY={28} scale={0.6} rotate={5} />
+      <SpaceVehicle type="shuttle" delay={0.5} duration={25} startX={85} startY={95} endX={70} endY={-10} scale={0.6} rotate={-8} />
+      <SpaceVehicle type="rocket1" delay={1.5} duration={30} startX={75} startY={100} endX={90} endY={-15} scale={0.5} rotate={-5} />
+      <SpaceVehicle type="ship1" delay={0.8} duration={35} startX={110} startY={60} endX={-15} endY={50} scale={0.5} rotate={-3} />
     </div>
   )
 }

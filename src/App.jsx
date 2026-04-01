@@ -87,8 +87,137 @@ function CursorGlow() {
   )
 }
 
+// ─── Rocket Launch Intro ──────────────────────────────────────────────────────
+function RocketIntro({ onComplete }) {
+  return (
+    <motion.div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: '#000',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        overflow: 'hidden',
+      }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.8, ease: 'easeInOut' }}
+    >
+      {/* Star dots in background */}
+      {Array.from({ length: 40 }).map((_, i) => (
+        <motion.div
+          key={i}
+          style={{
+            position: 'absolute',
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            width: 2, height: 2,
+            borderRadius: '50%',
+            background: '#fff',
+          }}
+          animate={{ opacity: [0.1, 0.6, 0.1] }}
+          transition={{ duration: 1 + Math.random() * 2, repeat: Infinity, delay: Math.random() }}
+        />
+      ))}
+
+      {/* Speed lines that appear as rocket launches */}
+      <motion.div
+        style={{ position: 'absolute', inset: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: [0, 0, 0.6, 0] }}
+        transition={{ duration: 2.2, times: [0, 0.5, 0.7, 1] }}
+      >
+        {Array.from({ length: 20 }).map((_, i) => (
+          <motion.div
+            key={i}
+            style={{
+              position: 'absolute',
+              left: `${10 + Math.random() * 80}%`,
+              top: '0%',
+              width: 1,
+              height: `${20 + Math.random() * 40}%`,
+              background: `linear-gradient(to bottom, transparent, rgba(${200 + Math.random() * 55},${100 + Math.random() * 80},${20 + Math.random() * 40},0.3), transparent)`,
+            }}
+            animate={{ y: ['0vh', '120vh'] }}
+            transition={{ duration: 0.5, delay: 1.1 + Math.random() * 0.3, ease: 'easeIn' }}
+          />
+        ))}
+      </motion.div>
+
+      {/* The rocket */}
+      <motion.div
+        initial={{ y: '50vh', opacity: 1 }}
+        animate={{ y: '-120vh', opacity: 1 }}
+        transition={{ duration: 1.8, delay: 0.6, ease: [0.45, 0, 0.55, 1] }}
+        onAnimationComplete={onComplete}
+        style={{ position: 'relative', zIndex: 2 }}
+      >
+        <svg width="70" height="160" viewBox="0 0 70 160" fill="none">
+          {/* Exhaust flame — big and dramatic */}
+          <motion.g
+            animate={{
+              opacity: [0.7, 1, 0.7],
+              scaleY: [0.8, 1.4, 0.8],
+              scaleX: [0.9, 1.1, 0.9],
+            }}
+            transition={{ duration: 0.15, repeat: Infinity }}
+            style={{ transformOrigin: '35px 140px' }}
+          >
+            <ellipse cx="35" cy="155" rx="14" ry="22" fill="#e67e22" opacity="0.7" />
+            <ellipse cx="35" cy="150" rx="10" ry="18" fill="#f39c12" opacity="0.8" />
+            <ellipse cx="35" cy="145" rx="6" ry="12" fill="#fad7a0" opacity="0.9" />
+            <ellipse cx="35" cy="142" rx="3" ry="6" fill="#fff" opacity="0.8" />
+          </motion.g>
+
+          {/* Rocket body */}
+          <path d="M 22 120 L 22 52 Q 22 14 35 4 Q 48 14 48 52 L 48 120 Z" fill="#d5d8dc" />
+          <path d="M 28 118 L 28 56 Q 28 20 35 10 Q 42 20 42 56 L 42 118 Z" fill="#eaecee" />
+
+          {/* Nose cone */}
+          <path d="M 22 52 Q 22 14 35 2 Q 48 14 48 52" fill="#e74c3c" />
+          <path d="M 30 50 Q 30 20 35 8 Q 40 20 40 50" fill="#c0392b" opacity="0.5" />
+
+          {/* Windows */}
+          <circle cx="35" cy="58" r="7" fill="#2c3e50" />
+          <circle cx="35" cy="58" r="5.5" fill="#5dade2" opacity="0.7" />
+          <circle cx="33" cy="55.5" r="2" fill="white" opacity="0.6" />
+
+          <circle cx="35" cy="80" r="5" fill="#2c3e50" />
+          <circle cx="35" cy="80" r="3.5" fill="#5dade2" opacity="0.5" />
+
+          <circle cx="35" cy="98" r="4" fill="#2c3e50" />
+          <circle cx="35" cy="98" r="2.5" fill="#5dade2" opacity="0.4" />
+
+          {/* Fins */}
+          <path d="M 22 100 L 6 128 L 22 118 Z" fill="#e74c3c" />
+          <path d="M 48 100 L 64 128 L 48 118 Z" fill="#e74c3c" />
+          <path d="M 22 100 L 10 125 L 22 116 Z" fill="#c0392b" opacity="0.5" />
+          <path d="M 48 100 L 60 125 L 48 116 Z" fill="#c0392b" opacity="0.5" />
+
+          {/* Center fin */}
+          <path d="M 32 118 L 35 130 L 38 118 Z" fill="#e74c3c" />
+
+          {/* Stripe detail */}
+          <rect x="22" y="88" width="26" height="2" rx="1" fill="rgba(231,76,60,0.3)" />
+          <rect x="22" y="108" width="26" height="2" rx="1" fill="rgba(231,76,60,0.3)" />
+        </svg>
+      </motion.div>
+
+      {/* Screen flash when rocket passes */}
+      <motion.div
+        style={{
+          position: 'absolute', inset: 0,
+          background: 'white',
+          zIndex: 3,
+        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: [0, 0, 0, 0.3, 0] }}
+        transition={{ duration: 2.4, delay: 0.6, times: [0, 0.6, 0.75, 0.85, 1] }}
+      />
+    </motion.div>
+  )
+}
+
 // ─── Main App ─────────────────────────────────────────────────────────────────
 export default function App() {
+  const [introComplete, setIntroComplete] = useState(false)
   const [noCount, setNoCount] = useState(0)
   const [mood, setMood] = useState('happy')
   const [showBubble, setShowBubble] = useState(false)
@@ -136,9 +265,9 @@ export default function App() {
           access_key: WEB3FORMS_KEY,
           subject: "🎉 Daddy said YES to Project Hail Mary!",
           from_name: "Movie Date Alert 🐱",
-          message: "OMG! Vijay just pressed YES! He wants to watch Project Hail Mary with you! 🎬💕🐱",
+          message: `OMG! Vijay just pressed YES! He wants to watch Project Hail Mary with you! 🎬💕🐱\n\nHe pressed No ${noCount} time(s) before finally saying Yes 😂`,
         }),
-      }).catch(() => {}) // silent fail — don't ruin the moment
+      }).catch(() => {})
     }
   }
 
@@ -149,6 +278,20 @@ export default function App() {
     setBubbleText(sadMessages[Math.min(c - 1, sadMessages.length - 1)])
     setBubbleType('sad')
     setShowBubble(true)
+
+    // 🔔 Send email notification for each No press
+    if (WEB3FORMS_KEY !== "YOUR_ACCESS_KEY_HERE") {
+      fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_KEY,
+          subject: `😿 Daddy pressed No (${c} time${c > 1 ? 's' : ''})`,
+          from_name: "Movie Date Alert 🐱",
+          message: `Vijay pressed No for the ${c}${c === 1 ? 'st' : c === 2 ? 'nd' : c === 3 ? 'rd' : 'th'} time! 😭 The kitty is crying... but the Yes button is getting bigger! 🐱`,
+        }),
+      }).catch(() => {})
+    }
   }
 
   const yesScale = Math.min(1 + noCount * 0.18, 2)
@@ -159,11 +302,22 @@ export default function App() {
 
   return (
     <>
+      {/* Rocket launch intro */}
+      <AnimatePresence>
+        {!introComplete && (
+          <RocketIntro onComplete={() => setIntroComplete(true)} />
+        )}
+      </AnimatePresence>
+
       <SpaceBackground />
       <CursorGlow />
       <PawPrints />
 
-      <div style={{
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: introComplete ? 1 : 0 }}
+        transition={{ duration: 1, delay: 0.3 }}
+        style={{
         position: 'relative', zIndex: 10,
         textAlign: 'center',
         padding: 'clamp(1rem, 3vh, 2rem) clamp(1.5rem, 5vw, 3rem)',
@@ -528,7 +682,7 @@ export default function App() {
             </SparkleText>
           </div>
         </motion.div>
-      </div>
+      </motion.div>
     </>
   )
 }
