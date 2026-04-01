@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import CuteCat from './CuteCat'
@@ -256,20 +256,27 @@ export default function App() {
 
     setTimeout(() => setShowQuestion(false), 2800)
 
-    // 🔔 Send email notification to Kitty
+    // 🔔 Send email notification to Kitty (delayed slightly to avoid rate limit)
     if (WEB3FORMS_KEY !== "YOUR_ACCESS_KEY_HERE") {
-      fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          access_key: WEB3FORMS_KEY,
-          subject: "🎉 Daddy said YES to Project Hail Mary!",
-          from_name: "Movie Date Alert 🐱",
-          message: `OMG! Vijay just pressed YES! He wants to watch Project Hail Mary with you! 🎬💕🐱\n\nHe pressed No ${noCount} time(s) before finally saying Yes 😂`,
-        }),
-      }).catch(() => {})
+      setTimeout(() => {
+        fetch("https://api.web3forms.com/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            access_key: WEB3FORMS_KEY,
+            subject: "🎉 Daddy said YES to Project Hail Mary!",
+            from_name: "Movie Date Alert 🐱",
+            message: noCount > 0
+              ? `OMG! Vijay just pressed YES! He wants to watch Project Hail Mary with you! 🎬💕🐱\n\nHe pressed No ${noCount} time(s) before finally saying Yes 😂`
+              : `OMG! Vijay pressed YES right away! No hesitation! He wants to watch Project Hail Mary with you! 🎬💕🐱`,
+          }),
+        }).catch(() => {})
+      }, 2000) // 2s delay to avoid colliding with any recent No email
     }
   }
+
+  // Track if first No email was already sent (avoid spamming)
+  const firstNoSentRef = useRef(false)
 
   const handleNo = () => {
     const c = noCount + 1
@@ -279,16 +286,17 @@ export default function App() {
     setBubbleType('sad')
     setShowBubble(true)
 
-    // 🔔 Send email notification for each No press
-    if (WEB3FORMS_KEY !== "YOUR_ACCESS_KEY_HERE") {
+    // 🔔 Only send email on 1st No press (avoids rate limiting)
+    if (WEB3FORMS_KEY !== "YOUR_ACCESS_KEY_HERE" && !firstNoSentRef.current) {
+      firstNoSentRef.current = true
       fetch("https://api.web3forms.com/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           access_key: WEB3FORMS_KEY,
-          subject: `😿 Daddy pressed No (${c} time${c > 1 ? 's' : ''})`,
+          subject: "😿 Daddy pressed No!",
           from_name: "Movie Date Alert 🐱",
-          message: `Vijay pressed No for the ${c}${c === 1 ? 'st' : c === 2 ? 'nd' : c === 3 ? 'rd' : 'th'} time! 😭 The kitty is crying... but the Yes button is getting bigger! 🐱`,
+          message: "Vijay pressed No! 😭 But don't worry — the Yes button is growing and the No button is shrinking. Kitty never gives up! 🐱\n\n(The final Yes email will tell you the total No count)",
         }),
       }).catch(() => {})
     }
